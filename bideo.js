@@ -16,6 +16,9 @@
     // The Video element
     this.videoEl = null;
 
+    this.videoSrc = [];
+    this.videoIndex = 1;
+
     // Approximate Loading Rate
     //
     // The value will be a number like 0.8
@@ -49,13 +52,14 @@
       // Meta data event
       self.videoEl.addEventListener('loadedmetadata', self._resize, false);
 
+      self.videoEl.addEventListener('ended', function () {
+        self.run();
+      });
+
       // Fired when enough has been buffered to begin the video
       // self.videoEl.readyState === 4 (HAVE_ENOUGH_DATA)
-      self.videoEl.addEventListener('canplay', function () {
+      self.videoEl.addEventListener('canplay',  function() {
         self.opt.onLoad && self.opt.onLoad();
-
-        // Play the video when enough has been buffered
-        self.videoEl.play();
       });
 
       // If resizing is required (resize video as window/container resizes)
@@ -81,10 +85,24 @@
           }
         }
 
-        self.videoEl.appendChild(source);
+        self.videoSrc.push(source);
+        if(i == 0) {
+            self.videoEl.appendChild(source);
+        }
+
       });
 
       return;
+    }
+
+    this.run = function() {
+        if(this.videoIndex == this.videoSrc.length) {
+            this.videoIndex = 0;
+        }
+        this.videoEl.replaceChild(this.videoSrc[this.videoIndex], this.videoEl.childNodes[0]);
+        this.videoEl.load();
+        this.videoEl.play();
+        this.videoIndex++;
     }
 
     // Called once video metadata is available
